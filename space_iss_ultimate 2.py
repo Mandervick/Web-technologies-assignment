@@ -1,0 +1,87 @@
+'''
+    https://developer.cisco.com/learning/modules/automating-webex-teams-appdev/collab-webex-calling-apis-from-python-itp/write-a-get-request-in-python/
+    This program:
+   - Asks the user to enter an access token or use the hard coded access token.
+   - Lists the user's Webex rooms.
+   - Asks the user which Webex room to monitor for "/seconds" of requests.
+   - Monitors the selected Webex Team room every second for "/seconds" messages.
+   - Discovers GPS coordinates of the ISS flyover using ISS API.
+   - Display the geographical location using geolocation API based on the GPS coordinates.
+   - Formats and sends the results back to the Webex Team room.
+
+   The student will:
+   1. Import libraries for API requests, JSON formatting, epoch time conversion, and iso3166.
+   2. Complete the if statement to ask the user for the Webex access token.
+   3. Provide the URL to the Webex room API.
+   4. Create a loop to print the type and title of each room.
+   5. Provide the URL to the Webex messages API.
+   6. Provide the URL to the ISS Current Location API.
+   7. Record the ISS GPS coordinates and timestamp.
+   8. Convert the timestamp epoch value to a human readable date and time.
+   9. Provide your Geoloaction API consumer key.
+   10. Provide the URL to the Geoloaction address API.
+   11. Store the location received from the Geoloaction API in a variable.
+   12. Complete the code to format the response message.
+   13. Complete the code to post the message to the Webex room.
+
+   urls:
+   GET    https://webexapis.com/v1/rooms           # List of rooms
+   POST   https://webexapis.com/v1/rooms           # Create a room
+   GET    https://webexapis.com/v1/rooms/<roomID>  # Get room details
+   PUT    https://webexapis.com/v1/rooms/<roomID>  # Update a room
+   DELETE https://webexapis.com/v1/rooms/<roomID>  # Delete a room
+'''
+
+import os 			# operating system
+import sys 			# excecuting python
+import subprocess 	# import built-in core Python libraries to obtain downloaded libraries without using terminal / cmd
+import importlib 	# Import libraries using their name as a string
+import json			#Import JSON formatting for sharing data
+import time			#Import epoch time conversion converts epoch time to human readable time
+import urllib		#Helps getting requests and other internet functions
+import requests		#Import libraries for API requests
+
+url = "https://webexapis.com/v1/rooms"
+
+libs = {"requests": "requests", "geopy":"geopy"} #Allows geolocation from longitude and latitude
+for name, lib in libs.items():
+	try:
+		importlib.import_module(name) # A for loop trying to import using the library name
+
+	except ImportError:
+		print(f"Trying to import {lib} with sys.executable -m pip install {lib}...") 
+		subprocess.check_call([sys.executable, "-m", "pip", "install",  lib])
+		# If the library is not already installed, the program will attempt to install it using python -m pip install <lib>
+
+	finally:
+		importlib.import_module(name) #Try importing the library again
+
+from geopy.geocoders import Nominatim #Using Nominatim geolocation data
+
+def getWebexToken():
+	prompt = "Do you wish to use the hard-coded Webex token? (y/n) "
+	token = ""											# set default value
+	on_file = False										# is there a copy in a text file?
+	if os.path.exists("access_token.txt"):				# has access token been saved to a file?
+		mtime = os.path.getmtime("access_token.txt")	# get date file was last modified in UTC format
+		last_modified  = time.ctime(mtime)				# convert time to human readable
+		prompt = f"Do you wish to use the saved token from {last_modified}? (y/n) (This token may have expired) "
+		file = open("access_token.txt","r")				# read it in anyway. Could be expired 
+		token = file.read()
+		file.close()
+		on_file = True
+
+	choice = input(prompt)								# Do you want to use hard coded/ textfile / paste in new?
+	if choice.lower()[0] == "n": 						# ensuring valid response by only taking the first letter of the response in lower case form. If it is not y, it is no.
+		token = input("Copy/Paste or type in your token, and Enter: ")
+		if token[0:6] != "Bearer ":						# Token must begin with "Bearer "
+			token = f"Bearer {token}" 					# Automatically adds "Bearer" before the token ID if the user does not put it in themselves
+			file = open("access_token.txt","w")			# save to file for next time
+			file.write(token)
+			file.close()
+
+	else: 
+		if not on_file: 								# Uses the token that's already on the program:
+			token = "NzA3ZTMyYjAtMDY5ZC00NmVkLWIzMDYtZjkxYTBmODllYTZlZTZlMWM0YzQtYWMy_P0A1_636b97a0-b0af-4297-b0e7-480dd517b3f9"
+			
+	return token
