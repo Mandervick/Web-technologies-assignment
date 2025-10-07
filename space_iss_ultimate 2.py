@@ -85,3 +85,27 @@ def getWebexToken():
 			token = "NzA3ZTMyYjAtMDY5ZC00NmVkLWIzMDYtZjkxYTBmODllYTZlZTZlMWM0YzQtYWMy_P0A1_636b97a0-b0af-4297-b0e7-480dd517b3f9"
 			
 	return token
+
+def getMessages(accessToken, roomIdToGetMessages): #Getting messages from the selected room
+	GetParameters = {"roomId": roomIdToGetMessages, "max": 1}
+	r = requests.get("https://webexapis.com/v1/messages", params = GetParameters, headers = {"Authorization": accessToken})
+	if not r.status_code ==  200: #Get the most recent message only
+		raise Exception( "Incorrect reply from Webex API. Status code: {}. Text: {}".format(r.status_code, r.text)) #Error from website or server
+
+	json_data = r.json()
+	if len(json_data["items"]) == 0:
+		print("No data found, adding default message") #If no previous messages were found on that room, the default message below will be printed
+		postMessage(accessToken, roomIdToGetMessages, "Welcome to ISS Tracker Room")	# No messages so add one
+		print("Re-start to continue")	# re-start the program to continue
+		return None
+
+	messages = json_data["items"]
+	message = messages[0]["text"]
+	return message 	#Retrieves previous message from the room and returns it back to the calling function
+
+def postMessage(accessToken, room_id, message):
+	httpHeaders = {'Authorization': accessToken}
+	body = {'roomId': room_id, 'text': message}
+	response = requests.post(url="https://webexapis.com/v1/messages", headers=httpHeaders, json=body)
+	print(response.status_code)
+	#posts a message in the room such as the welcome message or the different ISS outputs
