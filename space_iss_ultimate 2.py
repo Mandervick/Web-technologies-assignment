@@ -109,3 +109,39 @@ def postMessage(accessToken, room_id, message):
 	response = requests.post(url="https://webexapis.com/v1/messages", headers=httpHeaders, json=body)
 	print(response.status_code)
 	#posts a message in the room such as the welcome message or the different ISS outputs
+
+def getRooms(accessToken):
+	r = requests.get(url, headers={"Authorization": accessToken})  # Sending the access token to the website to authorise getting the information
+	if not r.status_code == 200:
+		raise Exception("Incorrect reply from Webex API. Status code: {}. Text: {}".format(r.status_code, r.text))  # Error from website or server
+
+	# 4. Create a loop to print the type and title of each room
+	print("\nList of available rooms:\n")  # \n for new line
+	rooms = r.json()["items"]
+	for room in rooms:
+		print(f"\t{room['title']}")  # \t Tabbing in one tab space
+	print()
+
+	return rooms
+
+def searchRoom(rooms):
+	'''
+	SEARCH FOR WEBEX ROOM TO MONITOR
+	- Searches for user-supplied room name.
+	- If found, print "found" message, returns room
+	- Else prompts for re-try. No returns None
+	'''
+	selectedRoom = None
+	while selectedRoom is None:
+		roomNameToSearch = input("Which room should be monitored for the /seconds messages? (Case sensitive!) ")
+
+		for room in rooms:
+			if (room["title"].find(roomNameToSearch) != -1):
+				print(f"Found room: {room['title']}")
+				print(f"Welcome to {roomNameToSearch}")
+				return room
+
+		print(f"Sorry, I didn't find any room with {roomNameToSearch} in it.")
+		response = input("Try again? (y/n) ")
+		if respnse.lower()[0] == "n":  # All responses automatically converted to lower case and only checks the first character. 'n' is the only response that cancels out the loop
+			return None
