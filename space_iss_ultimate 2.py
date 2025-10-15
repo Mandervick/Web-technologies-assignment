@@ -145,3 +145,46 @@ def searchRoom(rooms):
 		response = input("Try again? (y/n) ")
 		if respnse.lower()[0] == "n":  # All responses automatically converted to lower case and only checks the first character. 'n' is the only response that cancels out the loop
 			return None
+
+def getLocation(lon, lat): #Function to get the name of the place from it's latitude and longitude
+	geolocator = Nominatim(user_agent = "http") 			#Using Nominatim as the geolocation provider
+	location = geolocator.reverse(f'{lat},{lon}') 			#Using longitude and langitude to get name of the place
+	if location == None:									#If place not found, the ISS must be over the ocean
+		return 'Ocean'
+	return location.raw['address'].get('country', '') #Gives address and country if a place is found
+
+
+def getISSData():
+	''' load the current status of the ISS in real-time '''
+	r = requests.get("http://api.open-notify.org/iss-now.json")
+	jsonData = r.json() 	#Returns location data such as location, longitude, langitude and time data
+	# Extract the ISS location and time
+	location = jsonData["iss_position"]
+	lat = float(location['latitude'])
+	lon = float(location['longitude'])
+	time = jsonData["timestamp"]
+
+	return lon, lat, time
+
+def getSpaceXData():
+	url = "https://api.spacexdata.com/v5/launches/latest" #API URL for SpaceX to get the latest launch
+	r = (requests.get(url)) #gets data from the URL
+
+	jsonData = r.json() #Converts the data to json format which is easier to read
+	output = f"flight No: {jsonData['flight_number']}, " #Getting flight information
+	output += f"Launch pad: {jsonData['launchpad']}, " #Getting the location it went from
+	output += f"Launch Date: {jsonData['date_utc']}, " #Getting the date it went
+	output += f"Mission name: {jsonData['name']}" #Getting the mission name
+
+	print(output) #Prints this information
+	return output
+
+def processData(room, accessToken):
+	''' room is working '''
+	roomIdToGetMessages = room["id"]							# get Room ID
+	roomTitleToGetMessages = room["title"]						# get room title
+	seconds = 0 #Creating a variable called seconds to define the amount of time the program should sleep for after every request
+	timepassed = 0 #Keeping track of how long the program has been running for
+	message = getMessages(accessToken, roomIdToGetMessages)
+
+	wait_message_posted = False
