@@ -187,4 +187,35 @@ def processData(room, accessToken):
 	timepassed = 0 #Keeping track of how long the program has been running for
 	message = getMessages(accessToken, roomIdToGetMessages)
 
-	wait_message_posted = False
+	while True:
+		for runtime in range(6):   # print messages for only for 6 seconds
+			time.sleep(1)
+			timepassed = timepassed + 1
+			message = getMessages(accessToken, roomIdToGetMessages)
+			if message.find("/") == 0:    #Checks if a user has sent a / message with seconds in the room to define the amount of the time the program should wait before sending a message
+				if (message[1:].isdigit()): #Checks the numbers after the slash
+					seconds = int(message[1:])
+					print(f"Message received: {message} = time.sleep({seconds})")
+					# for the sake of testing, the max number of seconds is set to 5.
+					if seconds > 5:
+						print("Your requested sleep time has been reduced to 5 seconds")
+						seconds = 5
+					postMessage(accessToken, roomIdToGetMessages, (f"Message will print in {seconds} seconds"))  # Post the message to the Webex room after the requested sleep time
+					time.sleep(seconds)
+					lon, lat, timestamp = getISSData()  # Get the ISS location
+					timeString = time.ctime(timestamp)  # Converts time stamp to human readable format
+					CountryResult = getLocation(lon, lat)  # Converts location to human readable format
+					if CountryResult == "Ocean":
+						responseMessage = "On {}, the ISS was flying over a body of water at latitude {}° and longitude {}°.".format(timeString, lat, lon)  # args = arguments which tell the program which data to insert
+					else:
+						responseMessage = f"On {timeString}, the ISS was flying over {CountryResult}"
+					print(f"Sending to Webex: {responseMessage}")  # print the response message
+					postMessage(accessToken, roomIdToGetMessages, responseMessage)  # Post the message to the Webex room
+					postMessage(accessToken, roomIdToGetMessages, getSpaceXData())  # Post the message to the Webex room
+					print()  # Leave a blank line
+				else:
+					print("message did not contain time in seconds")
+			else:
+				if message != last_message:
+					print(message)
+					last_message = message
