@@ -219,3 +219,20 @@ def processData(room, accessToken):
 				if message != last_message:
 					print(message)
 					last_message = message
+
+		response = input("Do you want to continue? (y/n) ")
+		if response.lower()[0] == "n":  # All responses automatically converted to lower case and only checks the first character. 'n' is the only response that cancels out the loop
+			return  # stops the program
+
+def main():
+	''' access token lasts for 12 hours from login to website so needs to be replaced frequently '''
+	accessToken = getWebexToken()  # Get the token with this function
+	rooms = getRooms(accessToken)  # Get list of rooms
+	if rooms != None:  # check at least one room exists
+		room = searchRoom(rooms)  # Allow user to search for a room
+		if room != None:  # room has been found
+			processData(room, accessToken)  # Work with this room
+
+	input("\nEnter to quit")
+
+main()
