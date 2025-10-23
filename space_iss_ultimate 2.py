@@ -61,7 +61,7 @@ from geopy.geocoders import Nominatim  # Using Nominatim geolocation data
 
 def getWebexToken():
     prompt = "Do you wish to use the hard-coded Webex token? (y/n) "
-    token = ""  # set default value
+    token = "ZjI3ODE4NGYtNTc2OC00OGEzLWEwNTYtOGRlOWMzODQ1YzU2ODkyMTEzMGItZTIz_PE93_74f575ad-38da-4d7d-aa86-0a3f07cc90cd"  # set default value
     on_file = False  # is there a copy in a text file?
     if os.path.exists("access_token.txt"):  # has access token been saved to a file?
         mtime = os.path.getmtime("access_token.txt")  # get the date and time the file was last modified in UTC format
